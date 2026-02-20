@@ -5,6 +5,7 @@ __pycache__/
 
 # Ignore the database
 *.db
+invoices/
 
 # C extensions
 *.so

@@ -63,3 +63,59 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+# --- SUPPLIER OPERATIONS ---
+def create_supplier(db: Session, supplier: schemas.SupplierCreate):
+    db_supplier = models.Supplier(**supplier.dict())
+    db.add(db_supplier)
+    db.commit()
+    db.refresh(db_supplier)
+    return db_supplier
+
+def get_suppliers(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Supplier).offset(skip).limit(limit).all()
+
+# --- CUSTOMER OPERATIONS ---
+def create_customer(db: Session, customer: schemas.CustomerCreate):
+    db_customer = models.Customer(**customer.dict())
+    db.add(db_customer)
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
+
+def get_customers(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Customer).offset(skip).limit(limit).all()
+
+
+
+
+def create_transaction(db: Session, transaction: schemas.TransactionCreate):
+    db_product = db.query(models.Product).filter(models.Product.id == transaction.product_id).first()
+    
+    if not db_product:
+        raise ValueError("Product not found")
+
+    if transaction.transaction_type == "IN":
+        db_product.stock += transaction.quantity
+        
+        transaction.customer_id = None 
+        
+    elif transaction.transaction_type == "OUT":
+        if db_product.stock < transaction.quantity:
+            raise ValueError(f"Not enough stock! You only have {db_product.stock} left.")
+        
+        db_product.stock -= transaction.quantity
+        
+        transaction.supplier_id = None
+        
+    else:
+        raise ValueError("Transaction type must be 'IN' or 'OUT'")
+
+    db_transaction = models.Transaction(**transaction.dict())
+    db.add(db_transaction)
+    
+    db.commit()
+    db.refresh(db_transaction)
+    
+    return db_transaction
