@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import FileResponse 
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from . import crud, models, schemas, auth, invoice 
@@ -9,6 +10,19 @@ from .database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+
+app = FastAPI()
+
+# --- CORS SECURITY CONFIGURATION ---
+# This allows React frontend to talk to this backend without getting blocked.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Note: "*" allows any website to connect. Great for testing!
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows POST, GET, PUT, DELETE
+    allow_headers=["*"],  # Allows all headers (like our Authorization token)
+)
 
 def get_db():
     db = SessionLocal()
